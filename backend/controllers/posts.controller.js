@@ -7,14 +7,15 @@ import { verifyPost } from "../utils/verifyPost.js";
 const createPost = async (req, res) =>{
     try {
         const {topic, title, description, resources, name} = req.body;
-
+        const user = await User.findOne({name});
+        if(!user){
+            return res.status(401).json({ message: 'Invalid name or User is not registered' });
+        }
         //if user create post through AI
         if(topic && title && name && !description && !resources){
-            const user = User.findOne({name});
-            if(!user){
-                return res.status(401).json({ message: 'Invalid name or User is not registered' });
-            }
+
             try {
+
                 const AiResponse = await AIContent(topic, title)
                 const newPost = await DiscussionModel.create({
                     topic: AiResponse.topic,
@@ -28,6 +29,7 @@ const createPost = async (req, res) =>{
                 res.status(200).json({
                     message: "Post created successfully1"
                 })
+                return
             } catch (error) {
                 console.error('Error creating response:', error);
                 res.status(500).json({ error: 'An error occurred while creating the AI response' });
@@ -38,14 +40,9 @@ const createPost = async (req, res) =>{
             return res.status(400).json({ message: 'All fields are required' });
         }
 
-        const user = User.findOne({name});
-        if(!user){
-            return res.status(401).json({ message: 'Invalid name or User is not registered' });
-        }
-
-        
-
-        if(!verifyPost(topic, title, description)){
+        console.log(await verifyPost(topic, title, description))
+        const verification = await verifyPost(topic, title, description)
+        if(verification.analysis != 'YES'){
             return res.status(401).json({
                 message: "Content is not valid"
             })
