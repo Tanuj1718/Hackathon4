@@ -1,10 +1,39 @@
-import { DiscussionModel } from "../models/posts.model";
-import { User } from "../models/user.model";
+import { DiscussionModel } from "../models/posts.model.js";
+import { User } from "../models/user.model.js";
+import { AIContent } from "../utils/generateAIPost.js";
+import { verifyPost } from "../utils/verifyPost.js";
 
 
 const createPost = async (req, res) =>{
     try {
         const {topic, title, description, resources, name} = req.body;
+
+        //if user create post through AI
+        if(topic && title && name && !description && !resources){
+            const user = User.findOne({name});
+            if(!user){
+                return res.status(401).json({ message: 'Invalid name or User is not registered' });
+            }
+            try {
+                const AiResponse = await AIContent(topic, title)
+                const newPost = await DiscussionModel.create({
+                    topic: AiResponse.topic,
+                    title: AiResponse.title,
+                    description: AiResponse.description,
+                    name,
+                    resources: AiResponse.resources
+                })
+
+                console.log(newPost)
+                res.status(200).json({
+                    message: "Post created successfully1"
+                })
+            } catch (error) {
+                console.error('Error creating response:', error);
+                res.status(500).json({ error: 'An error occurred while creating the AI response' });
+            }
+        }
+
         if(!topic || !title || !description || !name){
             return res.status(400).json({ message: 'All fields are required' });
         }
@@ -13,6 +42,15 @@ const createPost = async (req, res) =>{
         if(!user){
             return res.status(401).json({ message: 'Invalid name or User is not registered' });
         }
+
+        
+
+        if(!verifyPost(topic, title, description)){
+            return res.status(401).json({
+                message: "Content is not valid"
+            })
+        }
+
         const newPost = await DiscussionModel.create({
             topic,
             title,
@@ -24,7 +62,7 @@ const createPost = async (req, res) =>{
 
         res.status(200).json({
             name: user.name,
-            message: "Post created successfully!"
+            message: "Post created successfully2!"
         });
     } catch (error) {
         console.error('Error during creating a post:', error);

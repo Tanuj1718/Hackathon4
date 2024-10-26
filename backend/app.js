@@ -24,6 +24,8 @@ app.use(cookieParser())
 //import routes
 import signupRouter from "./routes/signup.route.js"
 import signinRouter from "./routes/signin.route.js"
+import createPostRouter from "./routes/posts.route.js"
 app.use('/user', signupRouter)
 app.use('/user', signinRouter)
+app.use('/user', createPostRouter)
 export {app}
