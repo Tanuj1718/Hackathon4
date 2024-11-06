@@ -6,9 +6,9 @@
 
 3. User can create a structured post in two different ways:
 
-a. Using manually
+    a. Using manually
 
-b. Using AI
+    b. Using AI
 
 4. Post should contain topic, title, description, resources and name.
 
